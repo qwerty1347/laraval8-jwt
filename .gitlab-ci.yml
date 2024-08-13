@@ -1,0 +1,34 @@
+stages:
+  # - test
+  - develop
+
+# test1:
+#   stage: test
+#   tags:
+#     - item-dev-runner
+#   script:
+#     - cp .env.example .env
+#     - composer install
+#     - php artisan key:generate
+#     - php artisan jwt:secret
+#     - vendor/bin/phpunit
+#   only:
+#     - develop
+
+dev1:
+  stage: develop
+  tags:
+    - item-dev-runner
+  script:
+    - which ssh-agent
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - 'echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - chmod go-w ~/.ssh/config
+    - ~/.config/composer/vendor/bin/envoy run deploy --commit="$CI_COMMIT_SHA" --branch="develop"
+  environment:
+    name : develop
+    url : http://item-dev.domeggook.com
+  only:
+    - develop
